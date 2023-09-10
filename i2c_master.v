@@ -35,11 +35,8 @@ module i2c_master(
    reg done_tick_i, ready_i;
    wire into, nack ;
 
-   // body
-   //****************************************************************
-   // output control logic
-   //****************************************************************
-   // buffer for sda and scl lines 
+   /
+	
    always @(posedge clk, posedge reset)
 	begin
       if (reset) 
@@ -59,8 +56,7 @@ module i2c_master(
 	
    // only master drives scl line  
    assign scl = (scl_reg) ? 1'bz : 1'b0;
-   // sda are with pull-up resistors and becomes high when not driven
-   // "into" signal asserted when sdat into master
+   
    assign into = (data_phase && cmd_reg==RD_CMD && bit_reg<8) ||  
                  (data_phase && cmd_reg==WR_CMD && bit_reg==8); 
    assign sda = (into || sda_reg) ? 1'bz : 1'b0;
@@ -68,9 +64,8 @@ module i2c_master(
    assign dout = rx_reg[8:1];
    assign ack = rx_reg[0];    // obtained from slave in write 
    assign nack = din[0];      // used by master in read operation 
-   //****************************************************************
-   // fsmd for transmitting three bytes
-   //****************************************************************
+
+	
    // registers
    always @(posedge clk, posedge reset)
     begin
@@ -137,7 +132,7 @@ module i2c_master(
                state_next = hold;
             end
          end   
-         hold: begin            // in progress; prepared for the next op
+         hold: begin           
             ready_i = 1'b1;
             sda_out = 1'b0;
             scl_out = 1'b0;
@@ -146,7 +141,7 @@ module i2c_master(
                cmd_next = cmd;
                c_next = 0;
                case (cmd) 
-                  RESTART_CMD, START_CMD:   // start; error (restart?)
+                  RESTART_CMD, START_CMD:   
                      state_next = restart;
                   STOP_CMD:                 // stop
                      state_next = stop1;
@@ -230,7 +225,7 @@ module i2c_master(
                state_next = stop2;
             end // end if
          end
-         default:  // stop2 (for turnaround time) 
+         default:  // stop2 
             if (c_reg==half) 
                state_next = idle;
       endcase
